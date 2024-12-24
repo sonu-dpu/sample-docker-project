@@ -1,4 +1,5 @@
 version: '3.8'
+
 services:
   postgres:
     image: postgres:14
@@ -11,19 +12,22 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d  # Add initialization scripts if needed
+    restart: unless-stopped  # Restart PostgreSQL container in case of failure
 
   nextjs:
     build:
-      context: .
+      context: .  # Build context is the root of the project
+      dockerfile: cap/Dockerfile  # Specify the path to the Dockerfile inside the 'cap' folder
     container_name: nextjs_app
     ports:
       - "3000:3000"
     environment:
       DATABASE_URL: postgres://admin:admin123@postgres:5432/erp_db
     volumes:
-      - .:/app
+      - ./cap:/app  # Mount the 'cap' folder to '/app' inside the container
     depends_on:
-      - postgres
+      - postgres  # Ensure Next.js starts after PostgreSQL, but still needs a wait script
 
 volumes:
   postgres_data:
